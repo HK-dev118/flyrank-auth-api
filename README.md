@@ -75,4 +75,8 @@ flyrank-auth-api/
 ├── README.md
 
 └── requirements.txt
+## Swagger Documentation
 
+The API includes Swagger UI with Bearer token authentication for protected endpoints.
+
+![Swagger UI](screenshots/swagger-auth.png)
