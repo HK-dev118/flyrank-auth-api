@@ -79,4 +79,4 @@ flyrank-auth-api/
 
 The API includes Swagger UI with Bearer token authentication for protected endpoints.
 
-![Swagger UI](screenshots/swagger-auth.png)
+![Swagger UI](screenshots/swagger-auth1.png and swagger-auth2.png)
