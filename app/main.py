@@ -2,6 +2,7 @@ from fastapi import FastAPI, Header
 from fastapi.responses import JSONResponse
 
 from app.routers.auth import router as auth_router
+from app.supabase_client import supabase_request
 
 
 app = FastAPI(
@@ -31,9 +32,7 @@ async def public_info():
 async def protected_profile(
     authorization: str | None = Header(default=None)
 ):
-    # Stage 2: only check that a Bearer token was provided.
-    # Actual token verification will be added in Stage 3.
-
+    # Extract Bearer token
     if not authorization or not authorization.startswith("Bearer "):
         return JSONResponse(
             status_code=401,
@@ -52,6 +51,27 @@ async def protected_profile(
             }
         )
 
+    # Stage 3: verify token with Supabase
+    response = await supabase_request(
+        "GET",
+        "/user",
+        headers={
+            "Authorization": f"Bearer {token}"
+        }
+    )
+
+    if response.status_code != 200:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": "Invalid or expired token"
+            }
+        )
+
+    user = response.json()
+
     return {
-        "message": "Token received. Verification will be added in Stage 3."
+        "id": user.get("id"),
+        "email": user.get("email"),
+        "created_at": user.get("created_at")
     }

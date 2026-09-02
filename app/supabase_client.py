@@ -14,11 +14,17 @@ def get_supabase_headers():
 
 
 async def supabase_request(method: str, endpoint: str, **kwargs):
+    headers = get_supabase_headers()
+
+    # Merge any custom headers, such as Authorization
+    custom_headers = kwargs.pop("headers", {})
+    headers.update(custom_headers)
+
     async with httpx.AsyncClient() as client:
         response = await client.request(
             method,
             f"{SUPABASE_AUTH_URL}{endpoint}",
-            headers=get_supabase_headers(),
+            headers=headers,
             **kwargs,
         )
 
