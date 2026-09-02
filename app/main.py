@@ -1,9 +1,8 @@
 from fastapi import Depends, FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 
 from app.auth_dependency import get_current_user
 from app.routers.auth import router as auth_router
-from app.supabase_client import supabase_request
 
 
 app = FastAPI(
@@ -13,6 +12,8 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+
+security = HTTPBearer()
 
 
 @app.get("/")
