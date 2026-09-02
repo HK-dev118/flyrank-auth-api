@@ -1,5 +1,6 @@
 .venv/
 .env
 __pycache__/
-*.pycapp/main_stage2_backup.py
+*.pyc
+app/main_stage2_backup.py
 main_stage2_backup.py
