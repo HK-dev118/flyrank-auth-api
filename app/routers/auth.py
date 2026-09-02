@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
+from app.auth_dependency import get_current_user
 from app.supabase_client import supabase_request
 
 
@@ -67,3 +68,10 @@ async def login(user: AuthRequest):
         )
 
     return response.json()
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(
+    current_user=Depends(get_current_user)
+):
+    return None

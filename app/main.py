@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Header
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 
+from app.auth_dependency import get_current_user
 from app.routers.auth import router as auth_router
 from app.supabase_client import supabase_request
 
@@ -30,48 +31,21 @@ async def public_info():
 
 @app.get("/protected/profile")
 async def protected_profile(
-    authorization: str | None = Header(default=None)
+    current_user=Depends(get_current_user)
 ):
-    # Extract Bearer token
-    if not authorization or not authorization.startswith("Bearer "):
-        return JSONResponse(
-            status_code=401,
-            content={
-                "error": "Access token required"
-            }
-        )
-
-    token = authorization[7:]
-
-    if not token:
-        return JSONResponse(
-            status_code=401,
-            content={
-                "error": "Access token required"
-            }
-        )
-
-    # Stage 3: verify token with Supabase
-    response = await supabase_request(
-        "GET",
-        "/user",
-        headers={
-            "Authorization": f"Bearer {token}"
-        }
-    )
-
-    if response.status_code != 200:
-        return JSONResponse(
-            status_code=401,
-            content={
-                "error": "Invalid or expired token"
-            }
-        )
-
-    user = response.json()
-
     return {
-        "id": user.get("id"),
-        "email": user.get("email"),
-        "created_at": user.get("created_at")
+        "id": current_user.get("id"),
+        "email": current_user.get("email"),
+        "created_at": current_user.get("created_at")
+    }
+
+
+@app.get("/protected/dashboard")
+async def protected_dashboard(
+    current_user=Depends(get_current_user)
+):
+    return {
+        "message": "Welcome to your protected dashboard!",
+        "user_id": current_user.get("id"),
+        "email": current_user.get("email")
     }
