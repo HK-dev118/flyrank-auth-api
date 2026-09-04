@@ -1,11 +1,12 @@
 from pathlib import Path
+from urllib.parse import urljoin
 
 import requests
+from bs4 import BeautifulSoup
 
 
 BASE_URL = "https://books.toscrape.com/"
 CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
-CACHE_FILE = CACHE_DIR / "catalogue-page-1.html"
 
 USER_AGENT = (
     "FlyRankInternshipA9/1.0 "
@@ -56,8 +57,46 @@ def fetch_and_cache(url: str, cache_file: Path) -> str:
     return html
 
 
+def discover_catalogue_pages() -> list[tuple[str, str]]:
+    """Discover and cache the first three catalogue pages."""
+
+    pages = []
+    current_url = BASE_URL
+
+    for page_number in range(1, 4):
+        cache_file = CACHE_DIR / f"catalogue-page-{page_number}.html"
+
+        html = fetch_and_cache(current_url, cache_file)
+        pages.append((current_url, html))
+
+        soup = BeautifulSoup(html, "html.parser")
+        next_link = soup.select_one("li.next a")
+
+        if not next_link:
+            break
+
+        current_url = urljoin(current_url, next_link["href"])
+
+    return pages
+
+
 def main() -> None:
-    fetch_and_cache(BASE_URL, CACHE_FILE)
+    pages = discover_catalogue_pages()
+
+    all_book_urls = []
+
+    for page_url, html in pages:
+        soup = BeautifulSoup(html, "html.parser")
+
+        for link in soup.select("article.product_pod h3 a"):
+            book_url = urljoin(page_url, link["href"])
+            all_book_urls.append(book_url)
+
+    unique_urls = list(dict.fromkeys(all_book_urls))
+
+    print(f"catalogue_pages={len(pages)}")
+    print(f"discovered={len(all_book_urls)}")
+    print(f"unique_urls={len(unique_urls)}")
 
 
 if __name__ == "__main__":
