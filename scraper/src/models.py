@@ -8,6 +8,6 @@ class BookRecord(BaseModel):
     price_gbp: float = Field(ge=0)
     availability_text: str = Field(min_length=1)
     rating_text: str = Field(min_length=1)
-    description: str
+    description: str | None = None
     source_page: HttpUrl
     fetched_at: str

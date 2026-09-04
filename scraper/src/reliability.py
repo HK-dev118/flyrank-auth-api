@@ -5,7 +5,7 @@ from typing import Optional
 import requests
 
 
-MAX_RETRIES = 3
+MAX_RETRIES = 2
 RETRY_DELAY = 1.0
 
 
@@ -23,13 +23,6 @@ def fetch_with_retry(
     headers: dict,
     timeout: int = 10,
 ) -> FetchResult:
-    """
-    Fetch a URL with bounded retries.
-
-    Retries are used for transient request failures and
-    server-side HTTP errors.
-    """
-
     last_error = None
     last_status = None
 
@@ -52,12 +45,11 @@ def fetch_with_retry(
                     error=None,
                 )
 
+            # Retry only temporary/server failures.
             if response.status_code in {429, 500, 502, 503, 504}:
-                last_error = (
-                    f"HTTP {response.status_code}"
-                )
-
+                last_error = f"HTTP {response.status_code}"
             else:
+                # Never retry 403/404 and other permanent failures.
                 return FetchResult(
                     url=url,
                     html=None,
@@ -65,6 +57,9 @@ def fetch_with_retry(
                     attempts=attempt,
                     error=f"HTTP {response.status_code}",
                 )
+
+        except requests.Timeout:
+            last_error = "Request timeout"
 
         except requests.RequestException as exc:
             last_error = str(exc)
